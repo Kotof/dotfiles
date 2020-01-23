@@ -1,0 +1,39 @@
+{
+    "python.linting.flake8Enabled": true,
+    "python.linting.pylintEnabled": false,
+    "files.autoSave": "afterDelay",
+    "terminal.integrated.rendererType": "canvas",
+    "python.jediEnabled": false,
+    "workbench.colorTheme": "Predawn",
+    "workbench.iconTheme": "ayu",
+    "editor.fontSize": 13,
+    "editor.fontWeight": "normal",
+    "editor.fontFamily": "JetBrains Mono",
+    "debug.console.fontFamily": "JetBrains Mono",
+    "debug.console.fontSize": 11,
+    "terminal.integrated.fontSize": 13,
+    "terminal.integrated.fontWeight": "normal",
+    "terminal.integrated.letterSpacing": -1,
+    "terminal.integrated.lineHeight": 1,
+    "window.zoomLevel": 1.5,
+    "workbench.settings.editor": "json",
+    "workbench.settings.openDefaultSettings": true,
+    // for *unix
+    // "python.pythonPath": "/usr/local/bin/python3",
+    // for windows
+    "python.pythonPath": "C:\\Users\\<User name>\\AppData\\Local\\Programs\\Python\\<Python38-32>\\python.exe",
+    "python.formatting.provider": "black",
+    "editor.formatOnSave": true,
+    "code-runner.executorMap": {
+        "python": "$pythonPath -u $fullFileName"
+    },
+    "code-runner.clearPreviousOutput": true,
+    "code-runner.showExecutionMessage": false,
+    "calva.prettyPrintingOptions": {
+        "enabled": true,
+        "printEngine": "pprint",
+        "width": 120
+    },
+    "calva.paredit.defaultKeyMap": "strict",
+    "workbench.startupEditor": "newUntitledFile"
+}
