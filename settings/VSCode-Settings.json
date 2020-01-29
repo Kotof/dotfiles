@@ -18,10 +18,11 @@
     "window.zoomLevel": 1.5,
     "workbench.settings.editor": "json",
     "workbench.settings.openDefaultSettings": true,
-    // for *unix
-    // "python.pythonPath": "/usr/local/bin/python3",
-    // for windows
-    "python.pythonPath": "C:\\Users\\<User name>\\AppData\\Local\\Programs\\Python\\<Python38-32>\\python.exe",
+    "workbench.settings.useSplitJSON": true,
+    // for *unix:
+    // "python.pythonPath": "/bin/python3",
+    // for windows:
+    // "python.pythonPath": "C:\\Users\\<User name>\\AppData\\Local\\Programs\\Python\\<Python38-32>\\python.exe",
     "python.formatting.provider": "black",
     "editor.formatOnSave": true,
     "code-runner.executorMap": {
