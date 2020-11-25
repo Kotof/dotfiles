@@ -1,14 +1,17 @@
-;; .emacs.d/init.el
+;;;; -*- lexical-binding: t-*-
 
 ;; Enables basic packaging support
 (require 'package)
-
+;;
 ;; Adds the Melpa archive to the list of available repositories
-(add-to-list 'package-archives
-	     '("melpa" . "http://melpa.org/packages/") t)
+(setq package-archives
+      `(("gnu" . "https://elpa.gnu.org/packages/")
+        ("melpa" . "https://melpa.org/packages/")
+        ("org" . "https://orgmode.org/elpa/")))
 
 ;; Initializes the package infrastructure
 (package-initialize)
+
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -28,6 +31,29 @@
   (setq-default cursor-type 'bar)      ;; Thin cursor
   (global-hl-line-mode 1)              ;; Highlighting the active line
   (show-paren-mode t))                 ;; Highlight matching paranthesis
+;; Mouse wheel settings
+(use-package mwheel
+  :custom
+  (mouse-wheel-scroll-amount '(2
+                               ((shift) . 5)
+                               ((control))))
+  (mouse-wheel-progressive-speed nil))
+
+
+(use-package olivetti
+  :ensure t
+  :custom
+  (olivetti-body-width 95))
+
+
+;; Date/Time
+(use-package time
+  :ensure t
+  :custom
+  (display-time-default-load-average nil)
+  (display-time-24hr-format t)
+  (calendar-week-start-day 1)
+  (calendar-date-style 'european))
 
 ;; Color scheme
 (use-package solarized-theme
@@ -58,14 +84,11 @@
 
 ;; ==========================================
 ;;  >>>>>>>>>> Python Environment <<<<<<<<<<
-;; ==========================================
 
 (use-package python
   :ensure t
-
   :mode
   ("\\.py\\'" . python-mode)
-
   :bind
   (:map
    python-mode-map
@@ -76,20 +99,18 @@
   :defer t
   :init
   (advice-add 'python-mode :before 'elpy-enable)
-  :config
-  (elpy-company-backend "jedi"))
+  ;; :config
+  ;; (elpy-company-backend "jedi")
+  )
 
-(use-package py-autopep8
-  :ensure t
-  :config
-  (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save))
+;; Black formatting on save
+(use-package blacken :ensure t)
 
-;;;; Jedi
-(use-package jedi
-  :ensure t
-  :init
-  (add-hook 'python-mode-hook 'jedi:setup)
-  (add-hook 'python-mode-hook 'jedi:ac-setup))
+;; Tool for dependency management and packaging in Python
+(use-package poetry :ensure t)
+
+;; ==========================================
+;;  >>>>>>>>>>>>>>> Linters <<<<<<<<<<<<<<<
 
 ;;;; Flycheck
 (use-package flycheck
@@ -97,44 +118,21 @@
   :diminish "Ⓕ"
   :custom
   (flycheck-check-syntax-automatically
-   '(save mode-enabled) "Only check on save")
+   '(save mode-enabled))
   :bind
   (:map
    flycheck-mode-map
-   ("<f5>" . flycheck-buffer)))
+   ("<f5>" . flycheck-buffer))
+  :hook
+  (prog-mode . flycheck-mode))
 
-;;>>>>>>>>>>>>>>>>>> LSP <<<<<<<<<<<<<<<<<<<<<
+(use-package flycheck-color-mode-line
+  :ensure t
+  :after (flycheck)
+  :hook
+  (flycheck-mode . flycheck-color-mode-line-mode))
 
-;; (use-package lsp-mode
-;;   :ensure t
-;;   :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-;;          (python-mode . lsp)
-;;          ;; if you want which-key integration
-;;          (lsp-mode . lsp-enable-which-key-integration))
-;;   :commands lsp)
-
-;; (use-package lsp-ui :commands lsp-ui-mode)
-;; (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
-
-;; (use-package lsp-jedi
-;;   :ensure t
-;;   :config
-;;   (with-eval-after-load "lsp-mode"
-;;     (add-to-list 'lsp-disabled-clients 'pyls)
-;;     (add-to-list 'lsp-enabled-clients 'jedi)))
-
-;;>>>>>>>>>>>>>>>>>> LSP <<<<<<<<<<<<<<<<<<<<<
-
-
-;; Tool for dependency management and packaging in Python
-(use-package poetry
-  :ensure t)
-
-;; Run Clojure
-(use-package cider
-  :ensure t)
-
-;; Clojure linter
+;;;; Clojure linter
 (use-package flycheck-clj-kondo
   :ensure t)
 
@@ -144,9 +142,46 @@
   (require 'flycheck-clj-kondo))
 
 
-;; Black formatting on save
-(use-package blacken
+;; ==========================================
+;;  >>>>>>>>>>>>>>> LSP-mode <<<<<<<<<<<<<<<
+
+(use-package lsp-mode
+  :hook
+  ((python-mode . lsp)
+   (lsp-mode . lsp-enable-which-key-integration))  
+  :commands lsp  
+  :config
+  (setq lsp-signature-auto-activate nil
+	lsp-ui-doc-show-with-cursor nil
+	lsp-signature-auto-activate nil
+	lsp-diagnostics-provider :flycheck))
+
+(use-package lsp-ui
+  :commands lsp-ui-mode)
+
+(use-package lsp-python-ms
+  :ensure t
+  :init (setq lsp-python-ms-auto-install-server t)
+  :hook (python-mode . (lambda ()
+                         (require 'lsp-python-ms)
+                         (lsp))))  ; or lsp-deferred
+
+;; (use-package lsp-jedi
+;;   :ensure t
+;;   :config
+;;   (with-eval-after-load "lsp-mode"
+;;     (add-to-list 'lsp-disabled-clients 'pyls)
+;;     (add-to-list 'lsp-enabled-clients 'jedi)))
+
+;; ===========================================
+;;  >>>>>>>>>>>>>>>> Clojure <<<<<<<<<<<<<<<<
+
+(use-package cider
   :ensure t)
+
+
+;; ===========================================
+;;  >>>>>>>>>>>>>>>> ??????? <<<<<<<<<<<<<<<<
 
 ;; Auto complete
 (use-package company
@@ -160,11 +195,21 @@
   (:map company-active-map
         ("C-n" . company-select-next-or-abort)
         ("C-p" . company-select-previous-or-abort))
-  
   :hook
   (after-init . global-company-mode)
   :custom
   (company-minimum-prefix-length 2))
+
+(use-package company-quickhelp
+  :ensure t
+  :after (company)
+
+  :diminish company-quickhelp-mode
+
+  :bind
+  (:map
+   company-active-map
+   ("C-h" . company-quickhelp-manual-begin)))
 
 ;; Smart parentheses
 (use-package smartparens
@@ -180,7 +225,7 @@
   :config
   (progn
     (setq
-     treemacs-width                         25)))
+     treemacs-width 25)))
 
 (use-package treemacs-icons-dired
   :after treemacs dired
@@ -193,6 +238,11 @@
   :bind
   ("C-;" . 'avy-goto-char)
   ("C-'" . 'avy-goto-char-2))
+
+
+(use-package writegood-mode
+  :defer t
+  :ensure t)
 
 ;; Indentation
 (use-package highlight-indentation
@@ -235,3 +285,16 @@
 ;;   :ensure t)
 
 
+;;--------------------------------------------
+
+;; ;; ===================================================
+;; ;;  -------------- Basic Customization --------------
+;; ;; ===================================================
+
+
+
+
+;; ;; Use REPL
+;; (setq python-shell-interpreter "python"
+;;       python-shell-interpreter-args "-i")
+;; 
