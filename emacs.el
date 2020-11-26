@@ -1,8 +1,11 @@
-;;;; -*- lexical-binding: t-*-
+;; -*- lexical-binding: t-*-
+
+;; ==========================================
+;;  >>>>>>>>>> Package management <<<<<<<<<<
 
 ;; Enables basic packaging support
 (require 'package)
-;;
+
 ;; Adds the Melpa archive to the list of available repositories
 (setq package-archives
       `(("gnu" . "https://elpa.gnu.org/packages/")
@@ -12,7 +15,7 @@
 ;; Initializes the package infrastructure
 (package-initialize)
 
-
+;; use-package
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
@@ -20,7 +23,10 @@
 (eval-when-compile
   (require 'use-package))
 
-;; Emacs itself
+
+;; ==========================================
+;;  >>>>>>>>>>>>> Emacs itself <<<<<<<<<<<<<
+
 (use-package emacs
   :custom
   (inhibit-startup-message t)          ;; Hide the startup messag
@@ -31,6 +37,28 @@
   (setq-default cursor-type 'bar)      ;; Thin cursor
   (global-hl-line-mode 1)              ;; Highlighting the active line
   (show-paren-mode t))                 ;; Highlight matching paranthesis
+
+
+;; ===========================================
+;;  >>>>>>>>>>>>>>>>>> GUI <<<<<<<<<<<<<<<<<<
+
+;; Color scheme
+(use-package solarized-theme
+  :ensure t
+  ;; :custom
+  ;; (solarized-distinct-fringe-background t "Make the fringe to look distinct")
+  :config
+  (load-theme 'solarized-light t))
+
+;; Date/Time
+(use-package time
+  :ensure t
+  :custom
+  (display-time-default-load-average nil)
+  (display-time-24hr-format t)
+  (calendar-week-start-day 1)
+  (calendar-date-style 'european))
+
 ;; Mouse wheel settings
 (use-package mwheel
   :custom
@@ -45,41 +73,11 @@
   :custom
   (olivetti-body-width 95))
 
-
-;; Date/Time
-(use-package time
-  :ensure t
-  :custom
-  (display-time-default-load-average nil)
-  (display-time-24hr-format t)
-  (calendar-week-start-day 1)
-  (calendar-date-style 'european))
-
-;; Color scheme
-(use-package solarized-theme
-  :ensure t
-  ;; :custom
-  ;; (solarized-distinct-fringe-background t "Make the fringe to look distinct")
-  :config
-  (load-theme 'solarized-light t))
-
 ;; Popup windows manupulation
 (use-package popwin
   :ensure t
   :config
   (popwin-mode))
-
-;; Smart commenting
-(use-package comment-dwim-2
-  :ensure t
-  :bind
-  ("M-;" . comment-dwim-2))
-
-;; Indentation
-(use-package aggressive-indent
-  :ensure t
-  :config
-  (global-aggressive-indent-mode 1))
 
 
 ;; ==========================================
@@ -94,14 +92,14 @@
    python-mode-map
    ("C-c C-c" . compile)))
 
-(use-package elpy
-  :ensure t
-  :defer t
-  :init
-  (advice-add 'python-mode :before 'elpy-enable)
-  ;; :config
-  ;; (elpy-company-backend "jedi")
-  )
+;; (use-package elpy
+;;   :ensure t
+;;   :defer t
+;;   :init
+;;   (advice-add 'python-mode :before 'elpy-enable)
+;;   ;; :config
+;;   ;; (elpy-company-backend "jedi")
+;;   )
 
 ;; Black formatting on save
 (use-package blacken :ensure t)
@@ -109,8 +107,9 @@
 ;; Tool for dependency management and packaging in Python
 (use-package poetry :ensure t)
 
+
 ;; ==========================================
-;;  >>>>>>>>>>>>>>> Linters <<<<<<<<<<<<<<<
+;;  >>>>>>>>>>> Checking/linting <<<<<<<<<<<
 
 ;;;; Flycheck
 (use-package flycheck
@@ -132,15 +131,6 @@
   :hook
   (flycheck-mode . flycheck-color-mode-line-mode))
 
-;;;; Clojure linter
-(use-package flycheck-clj-kondo
-  :ensure t)
-
-(use-package clojure-mode
-  :ensure t
-  :config
-  (require 'flycheck-clj-kondo))
-
 
 ;; ==========================================
 ;;  >>>>>>>>>>>>>>> LSP-mode <<<<<<<<<<<<<<<
@@ -148,8 +138,8 @@
 (use-package lsp-mode
   :hook
   ((python-mode . lsp)
-   (lsp-mode . lsp-enable-which-key-integration))  
-  :commands lsp  
+   (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp
   :config
   (setq lsp-signature-auto-activate nil
 	lsp-ui-doc-show-with-cursor nil
@@ -173,20 +163,29 @@
 ;;     (add-to-list 'lsp-disabled-clients 'pyls)
 ;;     (add-to-list 'lsp-enabled-clients 'jedi)))
 
+
 ;; ===========================================
 ;;  >>>>>>>>>>>>>>>> Clojure <<<<<<<<<<<<<<<<
 
 (use-package cider
   :ensure t)
 
+;;;; Clojure linter
+(use-package flycheck-clj-kondo
+  :ensure t)
+
+(use-package clojure-mode
+  :ensure t
+  :config
+  (require 'flycheck-clj-kondo))
+
 
 ;; ===========================================
-;;  >>>>>>>>>>>>>>>> ??????? <<<<<<<<<<<<<<<<
+;;  >>>> Autocompletion and abbreviation <<<<
 
 ;; Auto complete
 (use-package company
   :ensure t
-  
   :bind
   ("C-c /" . company-files)
   (:map
@@ -202,18 +201,51 @@
 
 (use-package company-quickhelp
   :ensure t
-  :after (company)
-
-  :diminish company-quickhelp-mode
-
+  :after
+  (company)
+  :diminish
+  company-quickhelp-mode
   :bind
   (:map
    company-active-map
    ("C-h" . company-quickhelp-manual-begin)))
 
+
+;; ===========================================
+;;  >>>>> Minibuffer (search, commands) <<<<<
+
+(use-package ivy
+  :diminish t
+  :ensure t
+  :config
+  (ivy-mode t))
+
+(use-package which-key
+  :ensure t
+  :init (which-key-mode)
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 0.3))
+
+
+;; ===========================================
+;;  >>>>>>>>>>>>>>>> Editing <<<<<<<<<<<<<<<<
+
 ;; Smart parentheses
 (use-package smartparens
   :config (smartparens-global-mode 1))  ;; or t ?
+
+;; Smart commenting
+(use-package comment-dwim-2
+  :ensure t
+  :bind
+  ("M-;" . comment-dwim-2))
+
+;; Indentation
+(use-package aggressive-indent
+  :ensure t
+  :config
+  (global-aggressive-indent-mode 1))
 
 ;; Tree layout file explorer
 (use-package treemacs
@@ -232,6 +264,10 @@
   :ensure t
   :config (treemacs-icons-dired-mode))
 
+
+;; ===========================================
+;;  >>>>>>>>>>>>>> Quick jumps <<<<<<<<<<<<<<
+
 ;; For jumping to visible text
 (use-package avy
   :ensure t
@@ -240,15 +276,23 @@
   ("C-'" . 'avy-goto-char-2))
 
 
+;; ===========================================
+;;  >>>>>>>>>>>>>>>> Writing <<<<<<<<<<<<<<<<
+
 (use-package writegood-mode
   :defer t
   :ensure t)
 
+
+;; ==========================================
+;;  >>>>>>>>>>>>> Highlighting <<<<<<<<<<<<<
+
 ;; Indentation
 (use-package highlight-indentation
-  :diminish highlight-indentation-mode
-
-  :commands (highlight-indentation-mode))
+  :diminish
+  highlight-indentation-mode
+  :commands
+  (highlight-indentation-mode))
 
 ;; Rainbow delimiters
 (use-package rainbow-delimiters
@@ -271,10 +315,8 @@
 ;;   :ensure t
 ;;   :hook '(prog-mode help-mode))
 
-
-;; ========================
-;;  >>> For the future <<<
-;; ========================
+;; ==========================================
+;;  >>>>>>>>>>>> For the future <<<<<<<<<<<<
 
 ;; Make bindings that stick around
 ;; (use-package hydra
@@ -286,15 +328,7 @@
 
 
 ;;--------------------------------------------
-
-;; ;; ===================================================
-;; ;;  -------------- Basic Customization --------------
-;; ;; ===================================================
-
-
-
-
 ;; ;; Use REPL
 ;; (setq python-shell-interpreter "python"
 ;;       python-shell-interpreter-args "-i")
-;; 
+;;--------------------------------------------
