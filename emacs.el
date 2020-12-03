@@ -11,7 +11,6 @@
       `(("gnu" . "https://elpa.gnu.org/packages/")
         ("melpa" . "https://melpa.org/packages/")
         ("org" . "https://orgmode.org/elpa/")))
-
 ;; Initializes the package infrastructure
 (package-initialize)
 
@@ -23,6 +22,11 @@
 (eval-when-compile
   (require 'use-package))
 
+(use-package diminish
+  :ensure t)
+
+(use-package bind-key
+  :ensure t)
 
 ;; ==========================================
 ;;  >>>>>>>>>>>>> Emacs itself <<<<<<<<<<<<<
@@ -38,6 +42,10 @@
   (global-hl-line-mode 1)              ;; Highlighting the active line
   (show-paren-mode t))                 ;; Highlight matching paranthesis
 
+(use-package frame
+  :ensure nil
+  :bind
+  ("C-z" . nil))
 
 ;; ===========================================
 ;;  >>>>>>>>>>>>>>>>>> GUI <<<<<<<<<<<<<<<<<<
@@ -79,6 +87,9 @@
   :config
   (popwin-mode))
 
+;; (use-package hydra
+;;   :ensure t)
+
 
 ;; ==========================================
 ;;  >>>>>>>>>> Python Environment <<<<<<<<<<
@@ -90,22 +101,10 @@
   :bind
   (:map
    python-mode-map
-   ("C-c C-c" . compile)))
-
-;; (use-package elpy
-;;   :ensure t
-;;   :defer t
-;;   :init
-;;   (advice-add 'python-mode :before 'elpy-enable)
-;;   ;; :config
-;;   ;; (elpy-company-backend "jedi")
-;;   )
-
-;; Black formatting on save
-(use-package blacken :ensure t)
-
-;; Tool for dependency management and packaging in Python
-(use-package poetry :ensure t)
+   ("C-c C-c" . compile))
+  :config
+  (setq python-shell-interpreter "python"
+	python-shell-interpreter-args "-i"))
 
 
 ;; ==========================================
@@ -140,21 +139,33 @@
   ((python-mode . lsp)
    (lsp-mode . lsp-enable-which-key-integration))
   :commands lsp
+  :init
+  (setq lsp-keymap-prefix "C-c C-l")
   :config
   (setq lsp-signature-auto-activate nil
 	lsp-ui-doc-show-with-cursor nil
-	lsp-signature-auto-activate nil
-	lsp-diagnostics-provider :flycheck))
+	;; lsp-signature-auto-activate nil
+	;; lsp-diagnostics-provider :flycheck)
+	))
 
 (use-package lsp-ui
   :commands lsp-ui-mode)
 
-(use-package lsp-python-ms
+(use-package lsp-ivy
+  :commands lsp-ivy-workspace-symbol)
+
+(use-package lsp-pyright
   :ensure t
-  :init (setq lsp-python-ms-auto-install-server t)
   :hook (python-mode . (lambda ()
-                         (require 'lsp-python-ms)
+                         (require 'lsp-pyright)
                          (lsp))))  ; or lsp-deferred
+
+;; (use-package lsp-python-ms
+;;   :ensure t
+;;   :init (setq lsp-python-ms-auto-install-server t)
+;;   :hook (python-mode . (lambda ()
+;;                          (require 'lsp-python-ms)
+;;                          (lsp))))  ; or lsp-deferred
 
 ;; (use-package lsp-jedi
 ;;   :ensure t
@@ -163,6 +174,47 @@
 ;;     (add-to-list 'lsp-disabled-clients 'pyls)
 ;;     (add-to-list 'lsp-enabled-clients 'jedi)))
 
+
+;; ==========================================
+;;  >>>>>>>>>>>>>>> WEB-mode <<<<<<<<<<<<<<<
+
+(use-package web-mode
+  :ensure t
+  :config
+  (setq-default indent-tabs-mode nil)
+  :custom
+  (css-indent-offset 2)
+  (web-mode-markup-indent-offset 2)
+  (web-mode-enable-auto-indentation nil)
+  (web-mode-enable-auto-pairing nil)
+  (web-mode-engines-alist '(("django" . "\\.html\\'")))
+  :mode ;; Copied from spacemacs
+  (("\\.phtml\\'"      . web-mode)
+   ("\\.tpl\\.php\\'"  . web-mode)
+   ("\\.twig\\'"       . web-mode)
+   ("\\.xml\\'"        . web-mode)
+   ("\\.html\\'"       . web-mode)
+   ("\\.htm\\'"        . web-mode)
+   ("\\.[gj]sp\\'"     . web-mode)
+   ("\\.as[cp]x?\\'"   . web-mode)
+   ("\\.eex\\'"        . web-mode)
+   ("\\.erb\\'"        . web-mode)
+   ("\\.mustache\\'"   . web-mode)
+   ("\\.handlebars\\'" . web-mode)
+   ("\\.hbs\\'"        . web-mode)
+   ("\\.eco\\'"        . web-mode)
+   ("\\.ejs\\'"        . web-mode)
+   ("\\.svelte\\'"     . web-mode)
+   ("\\.djhtml\\'"     . web-mode))
+  ;; :hook
+  ;; (web-mode . tree-sitter-hl-mode)
+  ;; (web-mode . (lambda () (fk/add-local-hook 'before-save-hook 'fk/indent-buffer)))
+  )
+
+(use-package auto-rename-tag
+  :ensure t
+  :hook
+  (web-mode . auto-rename-tag-mode))
 
 ;; ===========================================
 ;;  >>>>>>>>>>>>>>>> Clojure <<<<<<<<<<<<<<<<
@@ -186,6 +238,7 @@
 ;; Auto complete
 (use-package company
   :ensure t
+  :diminish t
   :bind
   ("C-c /" . company-files)
   (:map
@@ -197,7 +250,8 @@
   :hook
   (after-init . global-company-mode)
   :custom
-  (company-minimum-prefix-length 2))
+  (company-minimum-prefix-length 2)
+  (company-idle-delay 0.0)) ;; default is 0.2)
 
 (use-package company-quickhelp
   :ensure t
@@ -210,6 +264,11 @@
    company-active-map
    ("C-h" . company-quickhelp-manual-begin)))
 
+;; (use-package company-web
+;;   :after web-mode
+;;   :config
+;;   (add-to-list 'company-backends '(company-web-html :with company-yasnippet)))
+
 
 ;; ===========================================
 ;;  >>>>> Minibuffer (search, commands) <<<<<
@@ -219,6 +278,33 @@
   :ensure t
   :config
   (ivy-mode t))
+
+(use-package counsel
+  :ensure t
+  :diminish t
+  :bind
+  ([remap insert-char] . counsel-unicode-char)
+  :config
+  (counsel-mode 1))
+
+(use-package swiper
+  :bind
+  ("M-s s" . swiper)
+  (:map
+   isearch-mode-map
+   ("M-s s" . swiper-from-isearch)))
+
+(use-package ivy-rich
+  :ensure t
+  :init
+  (ivy-rich-mode)
+  ;; :after (ivy)
+  ;; :custom
+  ;; (ivy-rich-path-style 'abbrev)
+  ;; :hook
+  ;; (ivy-mode . ivy-rich-mode)
+  )
+
 
 (use-package which-key
   :ensure t
@@ -244,6 +330,7 @@
 ;; Indentation
 (use-package aggressive-indent
   :ensure t
+  ;; :diminish (aggressive-indent-mode "↹")
   :config
   (global-aggressive-indent-mode 1))
 
@@ -256,8 +343,7 @@
     (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
   :config
   (progn
-    (setq
-     treemacs-width 25)))
+    (setq treemacs-width 25)))
 
 (use-package treemacs-icons-dired
   :after treemacs dired
@@ -287,12 +373,23 @@
 ;; ==========================================
 ;;  >>>>>>>>>>>>> Highlighting <<<<<<<<<<<<<
 
-;; Indentation
-(use-package highlight-indentation
-  :diminish
-  highlight-indentation-mode
-  :commands
-  (highlight-indentation-mode))
+(use-package highlight-indent-guides
+  :ensure t
+  :diminish highlight-indent-guides-mode
+  :hook (;; (python-mode . highlight-indent-guides-mode)
+         (prog-mode . highlight-indent-guides-mode)
+         (highlight-indent-guides-mode . (lambda ()
+                                           (set-face-foreground 'highlight-indent-guides-character-face "#8f9091")
+                                           (set-face-foreground 'highlight-indent-guides-top-character-face "#fe5e10"))))
+  :config
+  (progn
+    (setq highlight-indent-guides-method 'character
+          
+          highlight-indent-guides-character ?\┆ ;; candidates: , ⋮, ┆, ┊, ┋, ┇
+          highlight-indent-guides-responsive 'top
+          highlight-indent-guides-auto-enabled nil
+          highlight-indent-guides-auto-character-face-perc 10
+          highlight-indent-guides-auto-top-character-face-perc 20)))
 
 ;; Rainbow delimiters
 (use-package rainbow-delimiters
@@ -322,13 +419,10 @@
 ;; (use-package hydra
 ;;   :ensure t)
 
-;; Display available keybindings in popup
-;; (use-package which-key
-;;   :ensure t)
-
 
 ;;--------------------------------------------
 ;; ;; Use REPL
 ;; (setq python-shell-interpreter "python"
 ;;       python-shell-interpreter-args "-i")
 ;;--------------------------------------------
+
