@@ -33,8 +33,9 @@
 
 (use-package emacs
   :config
-  (kill-buffer "*scratch*")
-  (scroll-bar-mode -1)
+  ;; (kill-buffer "*scratch*")
+  (scroll-bar-mode 1)
+  (setq-default scroll-bar-width 5)
   (column-number-mode t)
   (delete-selection-mode t)
   (global-linum-mode -1)                ;; Enable line numbers globall
@@ -51,11 +52,10 @@
   ;; (echo-keystrokes 0.1)
   )
 
-(set-face-background 'hl-line "#d9d1bf")
-
 ;; Delete trailing spaces and add new line in the end of a file on save.
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 (setq require-final-newline t)
+
 ;; Show full path in the title bar.
 (global-visual-line-mode t)
 (setq-default frame-title-format "%b (%f)")
@@ -63,38 +63,33 @@
 ;; ============================================
 ;;  >>>>>>>>>>>> Interface tweaks <<<<<<<<<<<<
 
-(add-hook 'text-mode-hook
-          (lambda ()
-            (variable-pitch-mode 1)))
+;;;; Fonts
+;; (add-hook 'text-mode-hook (variable-pitch-mode 1))
 
 (set-face-attribute 'default nil :family "Monaco")
 (set-face-attribute 'fixed-pitch nil :family "Monaco")
 (set-face-attribute 'variable-pitch nil :family "Monaco")
 
-;;;; Light themes
+;;;; Themes
 (use-package espresso-theme :ensure t)           ; Light theme
 (use-package parchment-theme :ensure t)          ; Light theme
 (use-package cloud-theme :ensure t)              ; Light theme
+;; (load-theme 'tsdh-light)                      ; Light theme
 (use-package flatland-theme :ensure t)           ; Dark theme
 (use-package jetbrains-darcula-theme :ensure t)  ; Dark theme
 (use-package srcery-theme :ensure t)             ; Dark theme
 (use-package nord-theme :ensure t)               ; Dark theme
+;; (load-theme 'misterioso)                      ; Dark theme
+
 (use-package poet-theme                          ; Dark/light theme
   :ensure t
   :init
   (load-theme 'poet t)
   ;; (load-theme 'poet-monochrome t)
-  )
-
-
-(add-to-list
- 'default-frame-alist'(ns-transparent-titlebar . t))
-(add-to-list
- 'default-frame-alist'(ns-appearance . light))
-
-
-;; (load-theme 'tsdh-light)           ; Light theme
-;; (load-theme 'misterioso)           ; Dark theme
+  :config
+  (set-face-background 'hl-line "#d9d1bf")
+  :custom-face
+  (mode-line ((t (:box (:line-width 1 :color "#efefef"))))))
 
 
 (use-package visual-fill-column
@@ -134,6 +129,7 @@
   (setq doom-modeline-bar-width 3
         doom-modeline-height 30))
 
+
 ;; Popup windows manupulation
 (use-package popwin
   :ensure t
@@ -153,9 +149,9 @@
   :hook
   (after-init . org-roam-mode)
   :custom
-  (org-roam-directory "~/Dropbox/Emacs/org-roam/")
-  (org-roam-db-location "~/Dropbox/Emacs/org-roam/db/org-roam.db")
-  (org-directory "~/Elena/Dropbox/Emacs/org/")
+  (org-roam-directory "c:/Users/Elena/Dropbox/Emacs/org-roam/")
+  (org-roam-db-location "c:/Users/Elena/Dropbox/Emacs/org-roam/db/org-roam.db")
+  (org-directory "c:/Users/Elena/Dropbox/Emacs/org/")
   (org-hide-emphasis-markers t)
   :bind (:map org-roam-mode-map
               (("C-c n l" . org-roam)
@@ -317,22 +313,22 @@
 ;;  >>>> Autocompletion and abbreviation <<<<
 
 ;; Auto complete
-;; (use-package company
-;;   :ensure t
-;;   :diminish t
-;;   :bind
-;;   ("C-c /" . company-files)
-;;   (:map
-;;    company-mode-map
-;;    ("M-<tab>" . company-complete))
-;;   (:map company-active-map
-;;         ("C-n" . company-select-next-or-abort)
-;;         ("C-p" . company-select-previous-or-abort))
-;;   :hook
-;;   (after-init . global-company-mode)
-;;   :custom
-;;   (company-minimum-prefix-length 2)
-;;   (company-idle-delay 0.0)) ;; default is 0.2)
+(use-package company
+  :ensure t
+  :diminish t
+  :bind
+  ("C-c /" . company-files)
+  (:map
+   company-mode-map
+   ("M-<tab>" . company-complete))
+  (:map company-active-map
+        ("C-n" . company-select-next-or-abort)
+        ("C-p" . company-select-previous-or-abort))
+  :hook
+  (after-init . global-company-mode)
+  :custom
+  (company-minimum-prefix-length 2)
+  (company-idle-delay 0.0)) ;; default is 0.2)
 
 (use-package company-quickhelp
   :ensure t
@@ -412,6 +408,7 @@
 
 ;; Smart parentheses
 (use-package smartparens
+  :ensure t
   :config (smartparens-global-mode 1))  ;; or t ?
 
 ;; Smart commenting
