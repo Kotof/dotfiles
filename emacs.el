@@ -168,15 +168,15 @@
 (use-package org-bullets
   :ensure t
   :custom
-  (org-bullets-bullet-list '("★" "•" "•" "•" "•" "•" "•"))
+  (org-bullets-bullet-list '("◉" "•" "•" "•" "•" "•" "•"))
   ;; org-bullets-bullet-list
   ;; default: "◉ ○ ✸ ✿"
   ;; large: ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
   ;; Small: ► • ★ ▸
   ;; (org-bullets-bullet-list '("•"))
-  ;; others: ▼, ↴, ⬎, ⤷,…, ⇳, ⇊, 🠗
+  ;; others: ▼, ↴, ⬎, ⤵, ⤷,…, ⇳, ⇊, 🠗
   ;; (org-ellipsis "⤵")
-  (org-ellipsis " ↓")
+  (org-ellipsis "⤵")
   :hook
   (org-mode . org-bullets-mode))
 
@@ -240,9 +240,9 @@
   :init
   (setq lsp-keymap-prefix "C-c C-l")
   :config
-  (setq lsp-signature-auto-activate nil         ;; 12
-        lsp-ui-doc-show-with-cursor nil         ;; 2
-        lsp-ui-doc-show-with-mouse nil          ;; 2
+  (setq lsp-signature-auto-activate nil            ;; 12
+        lsp-ui-doc-show-with-cursor nil            ;; 2
+        lsp-ui-doc-show-with-mouse nil             ;; 2
         ;; lsp-enable-symbol-highlighting nil      ;; 1
 	    ;; lsp-diagnostics-provider :flycheck)     ;; 8
 	    ))
@@ -405,6 +405,15 @@
 
 ;; ===========================================
 ;;  >>>>>>>>>>>>>>>> Editing <<<<<<<<<<<<<<<<
+
+;; Regular undo-redo.
+(use-package undo-fu
+  :ensure t
+  :bind
+  ("C-z" . undo-fu-only-undo)
+  ("C-S-z" . undo-fu-only-redo)
+  ("C-/" . undo-fu-only-undo)
+  ("C-M-/" . undo-fu-only-redo))
 
 ;; Smart parentheses
 (use-package smartparens
