@@ -1,4 +1,4 @@
-;;;; -*- lexical-binding: t-*-
+;; -*- lexical-binding: t-*-
 
 ;; ==========================================
 ;;  >>>>>>>>>> Package management <<<<<<<<<<
@@ -32,10 +32,14 @@
 ;;  >>>>>>>>>>>>> Emacs itself <<<<<<<<<<<<<
 
 (use-package emacs
+  :init
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)  ;; Delete trailing spaces on save
   :config
+  (setq require-final-newline t)        ;; Add new line in the end of a file on save
   ;; (kill-buffer "*scratch*")
-  (scroll-bar-mode 1)
-  (setq-default scroll-bar-width 5)
+  ;; (scroll-bar-mode -1)
+  (setq-default scroll-bar-width 4)
+  (set-window-scroll-bars (minibuffer-window) nil nil)
   (column-number-mode t)
   (delete-selection-mode t)
   (global-linum-mode -1)                ;; Enable line numbers globall
@@ -52,13 +56,34 @@
   ;; (echo-keystrokes 0.1)
   )
 
-;; Delete trailing spaces and add new line in the end of a file on save.
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
-(setq require-final-newline t)
+
+;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
+
 
 ;; Show full path in the title bar.
 (global-visual-line-mode t)
 (setq-default frame-title-format "%b (%f)")
+
+(use-package ibuffer
+  :ensure t
+  :bind
+  ([remap list-buffers] . ibuffer))
+
+
+;; (use-package ace-window
+;;   :ensure t
+;;   :config
+;;   (setq aw-scope 'frame) ;; was global
+;;   (global-set-key (kbd "C-x O") 'other-frame)
+;;   (global-set-key [remap other-window] 'ace-window)
+;;   )
+
+(use-package winner
+  :config
+  (winner-mode 1))
+
+;; AWESOME:  This makes long-line buffers usable!
+;; (setq-default bidi-display-reordering nil)
 
 ;; ============================================
 ;;  >>>>>>>>>>>> Interface tweaks <<<<<<<<<<<<
@@ -70,6 +95,7 @@
 (set-face-attribute 'fixed-pitch nil :family "Monaco")
 (set-face-attribute 'variable-pitch nil :family "Monaco")
 
+
 ;;;; Themes
 (use-package espresso-theme :ensure t)           ; Light theme
 (use-package parchment-theme :ensure t)          ; Light theme
@@ -80,16 +106,35 @@
 (use-package srcery-theme :ensure t)             ; Dark theme
 (use-package nord-theme :ensure t)               ; Dark theme
 ;; (load-theme 'misterioso)                      ; Dark theme
+;; (set-face-background 'hl-line "#434a43")
+
 
 (use-package poet-theme                          ; Dark/light theme
   :ensure t
   :init
-  (load-theme 'poet t)
-  ;; (load-theme 'poet-monochrome t)
+  ;; (load-theme 'poet t)
+  (load-theme 'poet-monochrome t)
   :config
-  (set-face-background 'hl-line "#d9d1bf")
+  (setq initial-frame-alist '((background-color . "#e8e5d9")))
+  (setq default-frame-alist initial-frame-alist)
+  (set-face-background 'hl-line "#dbd8ce")
   :custom-face
-  (mode-line ((t (:box (:line-width 1 :color "#efefef"))))))
+  (font-lock-variable-name-face ((t (:foreground "#3d3d3d"))))
+  (font-lock-type-face ((t (:foreground "#286b82"))))
+  (font-lock-constant-face ((t (:foreground "#47371f"))))
+  (font-lock-keyword-face ((t (:foreground "#3d3d3d"))))
+  (font-lock-builtin-face ((t (:foreground "#286b82"))))
+  (font-lock-function-name-face ((t (:foreground "#3d3d3d"))))  ;; "#474747"
+  (font-lock-string-face ((t (:foreground "#396b48"))))   ;; "#515c4b", "#556e48" "#4e5c47", "4c5c44"
+  (font-lock-comment-face ((t (:foreground "#9e9e9e"))))  ;; "#8f8f8f", "8f8577"
+  (header-line
+   ((t (:background "#e0e0e0"
+                    :box (:color "#e0e0e0") :underline nil))))
+  (mode-line
+   ((t (:background "#bfbfbf"
+                    :box (:line-width 1 :color "#efefef")))))  ;; "#efefef"
+  (mode-line-inactive
+   ((t (:box (:color "#efefef" :line-width 1))))))
 
 
 (use-package visual-fill-column
@@ -126,8 +171,8 @@
   :ensure t
   :init (doom-modeline-mode 1)
   :config
-  (setq doom-modeline-bar-width 3
-        doom-modeline-height 30))
+  (setq doom-modeline-bar-width 1
+        doom-modeline-height 37))
 
 
 ;; Popup windows manupulation
@@ -139,6 +184,68 @@
 
 (use-package hydra
   :ensure t)
+
+(add-to-list 'load-path "~/.emacs.d/other")
+(setq initial-scratch-message "")
+(use-package maple-scratch
+  :ensure nil
+  :hook (window-setup . maple-scratch-init)
+  :config
+  (setq maple-scratch-source nil
+        maple-scratch-number 5
+        maple-scratch-center t
+        maple-scratch-empty t
+        maple-scratch-anywhere nil
+        maple-scratch-write-mode 'emacs-lisp-mode
+        maple-scratch-items '(maple-scratch-banner
+                              maple-scratch-navbar
+                              maple-scratch-default
+                              maple-scratch-startup)
+        maple-scratch-alist
+        (append (butlast maple-scratch-alist)
+                '(("Init"
+                   :action 'maple/open-init-file
+                   :desc "Open Init File")
+                  ("Test"
+                   :action 'maple/open-test-file
+                   :desc "Open Test File"))
+                (last maple-scratch-alist)))
+
+  (setq maple-scratch-banner
+        '( "                  ⢀⣤⣀⣀⣀⠀⠻⣷⣄"
+           "           ⠀⠀⠀ ⢀⣴⣿⣿⣿⡿⠋⠀⠀⠀⠹⣿⣦⡀"
+           "           ⠀ ⢀⣴⣿⣿⣿⣿⣏⠀⠀⠀⠀⠀⠀⢹⣿⣧"
+           "           ⠀ ⠙⢿⣿⡿⠋⠻⣿⣿⣦⡀⠀⠀⠀⢸⣿⣿⡆"
+           "           ⠀⠀⠀ ⠉⠀⠀⠀⠈⠻⣿⣿⣦⡀⠀⢸⣿⣿⡇"
+           "           ⠀⠀⠀⠀⢀⣀⣄⡀⠀⠀⠈⠻⣿⣿⣶⣿⣿⣿⠁"
+           "           ⠀⠀⠀⣠⣿⣿⢿⣿⣶⣶⣶⣶⣾⣿⣿⣿⣿⡁"
+           "           ⢠⣶⣿⣿⠋⠀⠀⠉⠛⠿⠿⠿⠿⠿⠛⠻⣿⣿⣦⡀"
+           "           ⣿⣿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⡿"))
+
+  (setq maple-scratch-navbar-alist
+        '(("HOME"
+           :action (lambda() (find-file (expand-file-name "init.el" user-emacs-directory)))
+           :desc "Browse home")
+          ("CAPTURE"
+           :action 'org-capture
+           :desc "Open Org Capture")
+          ("AGENDA"
+           :action 'org-agenda
+           :desc "Open Org Agenda")
+          ("HELP"
+           :action (lambda() (find-file (expand-file-name "README.org" user-emacs-directory)))
+           :desc "Emacs Help"))))
+
+;; ===========================================
+;;  >>>>>>>>>>>>>>>>> Dired <<<<<<<<<<<<<<<<<
+
+(use-package dired-recent
+  :ensure t
+  ;; :bind
+  ;; (:map
+  ;;  dired-recent-mode-map ("C-x C-d" . nil))
+  :config
+  (dired-recent-mode 1))
 
 
 ;; ===========================================
@@ -211,7 +318,7 @@
 ;;;; Flycheck
 (use-package flycheck
   :ensure t
-  :diminish "Ⓕ"  ;; F5
+  ;; :diminish "Ⓕ"  ;; F5
   :custom
   (flycheck-check-syntax-automatically
    '(save mode-enabled))
@@ -415,10 +522,11 @@
   ("C-/" . undo-fu-only-undo)
   ("C-M-/" . undo-fu-only-redo))
 
-;; Smart parentheses
+
+;; ;; Smart parentheses
 (use-package smartparens
   :ensure t
-  :config (smartparens-global-mode 1))  ;; or t ?
+  :config (smartparens-global-mode 1))
 
 ;; Smart commenting
 (use-package comment-dwim-2
@@ -442,8 +550,9 @@
   (with-eval-after-load 'winum
     (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
   :config
-  (progn
-    (setq treemacs-width 25)))
+  (progn (setq treemacs-width 25))
+  :bind
+  ("C-c t r" . treemacs))
 
 (use-package treemacs-icons-dired
   :after treemacs dired
