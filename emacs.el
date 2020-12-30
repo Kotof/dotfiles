@@ -22,6 +22,18 @@
 (eval-when-compile
   (require 'use-package))
 
+;; Quelpa is a tool to compile and install Emacs Lisp packages locally from local or remote source code
+(use-package quelpa
+  :ensure t
+  :defer t
+  :custom
+  (quelpa-update-melpa-p nil "Don't update the MELPA git repo."))
+
+(use-package quelpa-use-package
+  :init
+  (setq quelpa-use-package-inhibit-loading-quelpa t)
+  :ensure t)
+
 (use-package diminish
   :ensure t)
 
@@ -34,10 +46,11 @@
 (use-package emacs
   :init
   (add-hook 'before-save-hook 'delete-trailing-whitespace)  ;; Delete trailing spaces on save
+
   :config
   (setq require-final-newline t)        ;; Add new line in the end of a file on save
-  ;; (kill-buffer "*scratch*")
   ;; (scroll-bar-mode -1)
+  (setq initial-scratch-message "")
   (setq-default scroll-bar-width 4)
   (set-window-scroll-bars (minibuffer-window) nil nil)
   (column-number-mode t)
@@ -47,6 +60,7 @@
   (setq-default cursor-type 'bar)       ;; Thin cursor
   (global-hl-line-mode 1)               ;; Highlighting the active line
   (show-paren-mode t)                   ;; Highlight matching paranthesis
+
   :custom
   (indent-tabs-mode nil "Spaces!")
   (tab-width 4)
@@ -55,10 +69,6 @@
   (cursor-in-non-selected-windows t)    ;; Hide the cursor in inactive windows
   ;; (echo-keystrokes 0.1)
   )
-
-
-;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
-
 
 ;; Show full path in the title bar.
 (global-visual-line-mode t)
@@ -90,11 +100,9 @@
 
 ;;;; Fonts
 ;; (add-hook 'text-mode-hook (variable-pitch-mode 1))
-
 (set-face-attribute 'default nil :family "Monaco")
 (set-face-attribute 'fixed-pitch nil :family "Monaco")
 (set-face-attribute 'variable-pitch nil :family "Monaco")
-
 
 ;;;; Themes
 (use-package espresso-theme :ensure t)           ; Light theme
@@ -128,11 +136,9 @@
   (font-lock-string-face ((t (:foreground "#396b48"))))   ;; "#515c4b", "#556e48" "#4e5c47", "4c5c44"
   (font-lock-comment-face ((t (:foreground "#9e9e9e"))))  ;; "#8f8f8f", "8f8577"
   (header-line
-   ((t (:background "#e0e0e0"
-                    :box (:color "#e0e0e0") :underline nil))))
+   ((t (:background "#e0e0e0" :box (:color "#e0e0e0") :underline nil))))
   (mode-line
-   ((t (:background "#bfbfbf"
-                    :box (:line-width 1 :color "#efefef")))))  ;; "#efefef"
+   ((t (:background "#bfbfbf" :box (:line-width 1 :color "#efefef")))))  ;; "#efefef"
   (mode-line-inactive
    ((t (:box (:color "#efefef" :line-width 1))))))
 
@@ -160,13 +166,6 @@
   (mouse-wheel-progressive-speed nil))
 
 ;;;; Modeline
-;; (use-package mood-line
-;;   :ensure t
-;;   ;; :custom-face
-;;   ;; (mode-line ((t (:inherit default (:box (:line-width -1 :style released-button))))))
-;;   :hook
-;;   (after-init . mood-line-mode))
-
 (use-package doom-modeline
   :ensure t
   :init (doom-modeline-mode 1)
@@ -185,11 +184,14 @@
 (use-package hydra
   :ensure t)
 
-(add-to-list 'load-path "~/.emacs.d/other")
-(setq initial-scratch-message "")
+
+;; Dashboard
 (use-package maple-scratch
   :ensure nil
   :hook (window-setup . maple-scratch-init)
+  :quelpa
+  (maple-scratch :repo "honmaple/emacs-maple-scratch" :fetcher github :version original)
+
   :config
   (setq maple-scratch-source nil
         maple-scratch-number 5
@@ -212,15 +214,14 @@
                 (last maple-scratch-alist)))
 
   (setq maple-scratch-banner
-        '( "                  ⢀⣤⣀⣀⣀⠀⠻⣷⣄"
-           "           ⠀⠀⠀ ⢀⣴⣿⣿⣿⡿⠋⠀⠀⠀⠹⣿⣦⡀"
-           "           ⠀ ⢀⣴⣿⣿⣿⣿⣏⠀⠀⠀⠀⠀⠀⢹⣿⣧"
-           "           ⠀ ⠙⢿⣿⡿⠋⠻⣿⣿⣦⡀⠀⠀⠀⢸⣿⣿⡆"
-           "           ⠀⠀⠀ ⠉⠀⠀⠀⠈⠻⣿⣿⣦⡀⠀⢸⣿⣿⡇"
-           "           ⠀⠀⠀⠀⢀⣀⣄⡀⠀⠀⠈⠻⣿⣿⣶⣿⣿⣿⠁"
-           "           ⠀⠀⠀⣠⣿⣿⢿⣿⣶⣶⣶⣶⣾⣿⣿⣿⣿⡁"
-           "           ⢠⣶⣿⣿⠋⠀⠀⠉⠛⠿⠿⠿⠿⠿⠛⠻⣿⣿⣦⡀"
-           "           ⣿⣿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⡿"))
+        '(
+          "          ╲╭━━━━╮╲╲╭━━╮"
+          "          ╲┃╭╮╭╮┃╲╲┃BRO"
+          "          ┗┫┏━━┓┣┛╲╰┳━╯"
+          "          ╲┃╰━━╯┃━━━╯"
+          "          ╲╰┳━━┳╯╲╲╲╲"
+          "          ╲╲┛╲╲┗╲╲╲╲╲"
+          ))
 
   (setq maple-scratch-navbar-alist
         '(("HOME"
@@ -328,13 +329,6 @@
    ("<f5>" . flycheck-buffer))
   :hook
   (prog-mode . flycheck-mode))
-
-;; (use-package flycheck-color-mode-line
-;;   :ensure t
-;;   :after (flycheck)
-;;   :hook
-;;   (flycheck-mode . flycheck-color-mode-line-mode))
-
 
 ;; ==========================================
 ;;  >>>>>>>>>>>>>>> LSP-mode <<<<<<<<<<<<<<<
