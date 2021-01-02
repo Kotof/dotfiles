@@ -45,21 +45,24 @@
 
 (use-package emacs
   :init
-  (add-hook 'before-save-hook 'delete-trailing-whitespace)  ;; Delete trailing spaces on save
+  (add-hook
+   'before-save-hook 'delete-trailing-whitespace)       ;; Delete trailing spaces on save
 
   :config
-  (setq require-final-newline t)        ;; Add new line in the end of a file on save
+  (setq require-final-newline t)                        ;; Add new line in the end of a file on save
   ;; (scroll-bar-mode -1)
   (setq initial-scratch-message "")
-  (setq-default scroll-bar-width 4)
-  (set-window-scroll-bars (minibuffer-window) nil nil)
-  (column-number-mode t)
-  (delete-selection-mode t)
-  (global-linum-mode -1)                ;; Enable line numbers globall
-  (set-language-environment "UTF-8")    ;; For cyrillic chars
-  (setq-default cursor-type 'bar)       ;; Thin cursor
-  (global-hl-line-mode 1)               ;; Highlighting the active line
-  (show-paren-mode t)                   ;; Highlight matching paranthesis
+  (setq-default scroll-bar-width 4)                     ;; Scroll bar width
+  (set-window-scroll-bars (minibuffer-window) nil nil)  ;; Hides the minibuffer scroll bar
+  (column-number-mode t)                                ;; Displays column number
+  (delete-selection-mode t)                             ;; Replaces the selected text by simply typing or pasting other text
+  (global-linum-mode -1)                                ;; Enable line numbers globall
+  (set-language-environment "UTF-8")                    ;; For cyrillic chars
+  (setq-default cursor-type 'bar)                       ;; Thin cursor
+  (global-hl-line-mode 1)                               ;; Highlighting the active line
+  (show-paren-mode t)                                   ;; Highlight matching paranthesis
+  (global-visual-line-mode t)                           ;; Show full path
+  (setq-default frame-title-format "%b (%f)")           ;; in the title bar.
 
   :custom
   (indent-tabs-mode nil "Spaces!")
@@ -70,9 +73,6 @@
   ;; (echo-keystrokes 0.1)
   )
 
-;; Show full path in the title bar.
-(global-visual-line-mode t)
-(setq-default frame-title-format "%b (%f)")
 
 (use-package ibuffer
   :ensure t
@@ -94,6 +94,7 @@
 
 ;; AWESOME:  This makes long-line buffers usable!
 ;; (setq-default bidi-display-reordering nil)
+
 
 ;; ============================================
 ;;  >>>>>>>>>>>> Interface tweaks <<<<<<<<<<<<
@@ -128,13 +129,13 @@
   (set-face-background 'hl-line "#dbd8ce")
   :custom-face
   (font-lock-variable-name-face ((t (:foreground "#3d3d3d"))))
-  (font-lock-type-face ((t (:foreground "#286b82"))))
-  (font-lock-constant-face ((t (:foreground "#47371f"))))
-  (font-lock-keyword-face ((t (:foreground "#3d3d3d"))))
-  (font-lock-builtin-face ((t (:foreground "#286b82"))))
-  (font-lock-function-name-face ((t (:foreground "#3d3d3d"))))  ;; "#474747"
-  (font-lock-string-face ((t (:foreground "#396b48"))))   ;; "#515c4b", "#556e48" "#4e5c47", "4c5c44"
-  (font-lock-comment-face ((t (:foreground "#9e9e9e"))))  ;; "#8f8f8f", "8f8577"
+  (font-lock-type-face ((t (:foreground "#3d3d3d"))))
+  (font-lock-constant-face ((t (:foreground "#261d0f"))))  ;; "#47371f"
+  (font-lock-keyword-face ((t (:foreground "#AB324e"))))  ;; "#A66a96" "#AB324e" "#669182"   "#543e57"   "#3d3d3d"
+  (font-lock-builtin-face ((t (:foreground "#286b82"))))  ;; "#94327a" "#b43c94"   "#286b82" "#006385"
+  (font-lock-function-name-face ((t (:foreground "#3d3d3d"))))  ;; "#67939e" "#474747"
+  (font-lock-string-face ((t (:foreground "#579E5C"))))   ;; "#679e6b" "#396b48" "#515c4b", "#556e48" "#4e5c47", "4c5c44"
+  (font-lock-comment-face ((t (:foreground "#858585"))))  ;; "#9E9E9E" "#8f8f8f", "#8f8577"
   (header-line
    ((t (:background "#e0e0e0" :box (:color "#e0e0e0") :underline nil))))
   (mode-line
