@@ -50,9 +50,9 @@
 
   :config
   (setq require-final-newline t)                        ;; Add new line in the end of a file on save
-  ;; (scroll-bar-mode -1)
+  (scroll-bar-mode -1)
   (setq initial-scratch-message "")
-  (setq-default scroll-bar-width 4)                     ;; Scroll bar width
+  ;; (setq-default scroll-bar-width 4)                     ;; Scroll bar width
   (set-window-scroll-bars (minibuffer-window) nil nil)  ;; Hides the minibuffer scroll bar
   (column-number-mode t)                                ;; Displays column number
   (delete-selection-mode t)                             ;; Replaces the selected text by simply typing or pasting other text
@@ -80,13 +80,10 @@
   ([remap list-buffers] . ibuffer))
 
 
-;; (use-package ace-window
-;;   :ensure t
-;;   :config
-;;   (setq aw-scope 'frame) ;; was global
-;;   (global-set-key (kbd "C-x O") 'other-frame)
-;;   (global-set-key [remap other-window] 'ace-window)
-;;   )
+(use-package ace-window
+  :ensure t
+  :config
+  (global-set-key (kbd "C-x o") 'ace-window))
 
 (use-package winner
   :config
@@ -105,43 +102,46 @@
 (set-face-attribute 'fixed-pitch nil :family "Monaco")
 (set-face-attribute 'variable-pitch nil :family "Monaco")
 
-;;;; Themes
-(use-package espresso-theme :ensure t)           ; Light theme
-(use-package parchment-theme :ensure t)          ; Light theme
-(use-package cloud-theme :ensure t)              ; Light theme
-;; (load-theme 'tsdh-light)                      ; Light theme
-(use-package flatland-theme :ensure t)           ; Dark theme
-(use-package jetbrains-darcula-theme :ensure t)  ; Dark theme
-(use-package srcery-theme :ensure t)             ; Dark theme
-(use-package nord-theme :ensure t)               ; Dark theme
-;; (load-theme 'misterioso)                      ; Dark theme
+;;;; Light themes
+;; (load-theme 'tsdh-light)
+;; (use-package espresso-theme :ensure t :config (load-theme 'espresso t))
+
+;; (use-package eink-theme
+;;   :ensure t
+;;   :init (load-theme 'eink t)
+;;   :config
+;;   (setq initial-frame-alist '((background-color . "#e8e5d9")))  ;; "e7e7e7"
+;;   (setq default-frame-alist initial-frame-alist)
+;;   (set-face-background 'hl-line "#dbd8ce")
+;;   (set-fringe-mode 6)
+;;   :custom-face
+;;   (fringe ((t (:background "#bfbfbf" :foreground "#bfbfbf"))))
+;;   (font-lock-comment-face ((t (:foreground "#636363" :weight normal))))
+;;   (font-lock-doc-face ((t (:foreground "#579E5C" :weight normal))))
+;;   (font-lock-string-face ((t (:foreground "#579E5C"))))
+;;   (font-lock-builtin-face ((t (:weight black :background nil))))
+;;   (font-lock-constant-face ((t (:foreground "#94327a"))))
+;;   (font-lock-function-name-face ((t (:foreground "#285F99"))))
+;;   (mode-line ((t (:background "#bfbfbf" :height 0.9)))))
+
+(use-package cloud-theme
+  :ensure t
+  :config (load-theme 'cloud t)
+  :custom-face
+  (font-lock-keyword-face ((t (:weight normal :foreground "#8A2607"))))
+  (mode-line ((t (:height 0.98)))))
+
+;;;; Dark themes
+;; (use-package nord-theme :ensure t)
+;; (load-theme 'misterioso)
 ;; (set-face-background 'hl-line "#434a43")
 
-
-(use-package poet-theme                          ; Dark/light theme
-  :ensure t
-  :init
-  ;; (load-theme 'poet t)
-  (load-theme 'poet-monochrome t)
-  :config
-  (setq initial-frame-alist '((background-color . "#e8e5d9")))
-  (setq default-frame-alist initial-frame-alist)
-  (set-face-background 'hl-line "#dbd8ce")
-  :custom-face
-  (font-lock-variable-name-face ((t (:foreground "#3d3d3d"))))
-  (font-lock-type-face ((t (:foreground "#3d3d3d"))))
-  (font-lock-constant-face ((t (:foreground "#261d0f"))))  ;; "#47371f"
-  (font-lock-keyword-face ((t (:foreground "#AB324e"))))  ;; "#A66a96" "#AB324e" "#669182"   "#543e57"   "#3d3d3d"
-  (font-lock-builtin-face ((t (:foreground "#286b82"))))  ;; "#94327a" "#b43c94"   "#286b82" "#006385"
-  (font-lock-function-name-face ((t (:foreground "#3d3d3d"))))  ;; "#67939e" "#474747"
-  (font-lock-string-face ((t (:foreground "#579E5C"))))   ;; "#679e6b" "#396b48" "#515c4b", "#556e48" "#4e5c47", "4c5c44"
-  (font-lock-comment-face ((t (:foreground "#858585"))))  ;; "#9E9E9E" "#8f8f8f", "#8f8577"
-  (header-line
-   ((t (:background "#e0e0e0" :box (:color "#e0e0e0") :underline nil))))
-  (mode-line
-   ((t (:background "#bfbfbf" :box (:line-width 1 :color "#efefef")))))  ;; "#efefef"
-  (mode-line-inactive
-   ((t (:box (:color "#efefef" :line-width 1))))))
+;; Dark/light theme
+;; (use-package poet-theme
+;; :ensure t
+;; :config
+;; ;; (load-theme 'poet t)
+;; (load-theme 'poet-monochrome t)
 
 
 (use-package visual-fill-column
@@ -171,8 +171,8 @@
   :ensure t
   :init (doom-modeline-mode 1)
   :config
-  (setq doom-modeline-bar-width 1
-        doom-modeline-height 37))
+  (setq doom-modeline-bar-width 3
+        doom-modeline-height 31))
 
 
 ;; Popup windows manupulation
@@ -399,6 +399,8 @@
 
 (use-package cider
   :ensure t
+  :config
+  (setq cider-show-error-buffer 'only-in-repl)
   :custom
   (cider-repl-result-prefix ";; => "))
 
@@ -583,6 +585,11 @@
   :hook
   (prog-mode . rainbow-delimiters-mode))
 
+;; Highlight color
+(use-package rainbow-mode
+  :ensure t
+  :hook '(prog-mode help-mode))
+
 ;; (use-package highlight-indent-guides
 ;;   :ensure t
 ;;   :diminish highlight-indent-guides-mode
@@ -614,6 +621,4 @@
 ;;   (emacs-lisp-mode . rainbow-identifiers-mode) ; actually, turn it off
 ;;   (prog-mode . rainbow-identifiers-mode))
 
-;; (use-package rainbow-mode
-;;   :ensure t
-;;   :hook '(prog-mode help-mode))
+;; ------------------------------------------------------------------
