@@ -1,5 +1,6 @@
 ;; -*- lexical-binding: t-*-
 
+
 ;; ==========================================
 ;;  >>>>>>>>>> Package management <<<<<<<<<<
 
@@ -40,6 +41,7 @@
 (use-package bind-key
   :ensure t)
 
+
 ;; ==========================================
 ;;  >>>>>>>>>>>>> Emacs itself <<<<<<<<<<<<<
 
@@ -52,7 +54,7 @@
   (setq require-final-newline t)                        ;; Add new line in the end of a file on save
   (scroll-bar-mode -1)
   (setq initial-scratch-message "")
-  ;; (setq-default scroll-bar-width 4)                     ;; Scroll bar width
+  ;; (setq-default scroll-bar-width 4)                  ;; Scroll bar width
   (set-window-scroll-bars (minibuffer-window) nil nil)  ;; Hides the minibuffer scroll bar
   (column-number-mode t)                                ;; Displays column number
   (delete-selection-mode t)                             ;; Replaces the selected text by simply typing or pasting other text
@@ -78,7 +80,6 @@
   :ensure t
   :bind
   ([remap list-buffers] . ibuffer))
-
 
 (use-package ace-window
   :ensure t
@@ -238,6 +239,7 @@
            :action (lambda() (find-file (expand-file-name "README.org" user-emacs-directory)))
            :desc "Emacs Help"))))
 
+
 ;; ===========================================
 ;;  >>>>>>>>>>>>>>>>> Dired <<<<<<<<<<<<<<<<<
 
@@ -258,10 +260,10 @@
   :hook
   (after-init . org-roam-mode)
   :custom
-  (org-roam-directory "c:/Users/Elena/Dropbox/Emacs/org-roam/")
-  (org-roam-db-location "c:/Users/Elena/Dropbox/Emacs/org-roam/db/org-roam.db")
-  (org-directory "c:/Users/Elena/Dropbox/Emacs/org/")
-  (org-hide-emphasis-markers t)
+  (org-roam-directory "~/Dropbox/Emacs/org-roam/")
+  (org-roam-db-location "~/Dropbox/Emacs/org-roam/db/org-roam.db")
+  (org-directory "~/Dropbox/Emacs/org/")
+  ;; (org-hide-emphasis-markers t)
   :bind (:map org-roam-mode-map
               (("C-c n l" . org-roam)
 	           ("C-c n r" . org-roam-buffer-toggle-display)
@@ -330,6 +332,7 @@
    ("<f5>" . flycheck-buffer))
   :hook
   (prog-mode . flycheck-mode))
+
 
 ;; ==========================================
 ;;  >>>>>>>>>>>>>>> LSP-mode <<<<<<<<<<<<<<<
@@ -402,7 +405,7 @@
   :config
   (setq cider-show-error-buffer 'only-in-repl)
   :custom
-  (cider-repl-result-prefix ";; => "))
+  (cider-repl-result-prefix ";;-> "))
 
 (use-package flycheck-clj-kondo
   :ensure t)
@@ -411,6 +414,29 @@
   :ensure t
   :config
   (require 'flycheck-clj-kondo))
+
+
+;; ===========================================
+;;  >>>>>>>> Racket (Geiser), Pollen <<<<<<<<
+
+(use-package racket-mode
+  :ensure t)
+
+(use-package geiser
+  :ensure t
+  :mode
+  ("\\.rkt\\'" . racket-mode)
+  :hook
+  (racket-mode . smartparens-strict-mode))
+
+(use-package pollen-mode
+  :ensure t
+  :commands (pollen-mode)
+  :init
+  (add-to-list 'auto-mode-alist '("\\.pm$" . pollen-mode))
+  (add-to-list 'auto-mode-alist '("\\.pmd$" . pollen-mode))
+  (add-to-list 'auto-mode-alist '("\\.pp$" pollen-mode t))
+  (add-to-list 'auto-mode-alist '("\\.p$"  pollen-mode t)))
 
 
 ;; ===========================================
@@ -458,6 +484,7 @@
   (setq yas-snippet-dirs
         '("~/.emacs.d/snippets"))
   (yas-global-mode 1))
+
 
 ;; ===========================================
 ;;  >>>>> Minibuffer (search, commands) <<<<<
