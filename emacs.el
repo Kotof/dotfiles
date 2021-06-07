@@ -1,19 +1,37 @@
-;; -*- lexical-binding: t-*-
-
-
-;; ==========================================
-;;  >>>>>>>>>> Package management <<<<<<<<<<
+;;; -*- lexical-binding: t; -*-
 
 ;; Enables basic packaging support
 (require 'package)
-
 ;; Adds the Melpa archive to the list of available repositories
-(setq package-archives
-      `(("gnu" . "https://elpa.gnu.org/packages/")
-        ("melpa" . "https://melpa.org/packages/")
-        ("org" . "https://orgmode.org/elpa/")))
+(customize-set-variable 'package-archives
+                        `(,@package-archives
+                          ("melpa" . "https://melpa.org/packages/")
+                          ;; ("marmalade" . "https://marmalade-repo.org/packages/")
+                          ("org" . "https://orgmode.org/elpa/")
+                          ;; ("user42" . "https://download.tuxfamily.org/user42/elpa/packages/")
+                          ("emacswiki" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/emacswiki/")
+                          ;; ("sunrise" . "http://joseito.republika.pl/sunrise-commander/")
+                          ;; ("gnu" . "https://elpa.gnu.org/packages/")
+                          ))
+(customize-set-variable 'package-enable-at-startup nil)
 ;; Initializes the package infrastructure
 (package-initialize)
+
+
+;; Straight (не помню для чего нужен был...)
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
 
 ;; use-package
 (unless (package-installed-p 'use-package)
@@ -22,6 +40,30 @@
 
 (eval-when-compile
   (require 'use-package))
+
+(put 'use-package 'lisp-indent-function 1)
+
+(use-package use-package-core
+  :custom
+  ;; (use-package-verbose t)
+  ;; (use-package-minimum-reported-time 0.005)
+  (use-package-enable-imenu-support t))
+
+;; enable the Garbage Collector Magic Hack
+;; https://gitlab.com/koral/gcmh
+(use-package gcmh
+  :ensure t
+  :init
+  (gcmh-mode 1))
+
+;; Use use-package to extend its own functionality by some more useful keywords.
+(use-package system-packages
+  :ensure t
+  :custom
+  (system-packages-noconfirm t))
+
+(use-package use-package-ensure-system-package :ensure t)
+
 
 ;; Quelpa is a tool to compile and install Emacs Lisp packages locally from local or remote source code
 (use-package quelpa
@@ -34,6 +76,35 @@
   :init
   (setq quelpa-use-package-inhibit-loading-quelpa t)
   :ensure t)
+
+;; This one tries to speed up Emacs startup a little bit.
+(use-package fnhh
+  :quelpa
+  (fnhh :repo "a13/fnhh" :fetcher github)
+  :config
+  (fnhh-mode 1))
+
+;; This adds :custom-update keyword to use-package.
+(use-package use-package-custom-update
+  :quelpa
+  (use-package-custom-update
+   :repo "a13/use-package-custom-update"
+   :fetcher github
+   :version original))
+
+;; Try packages without installing
+(use-package try
+  :ensure t
+  :defer t)
+
+;; Modernized Package Menu
+;; https://github.com/Malabarba/paradox
+(use-package paradox
+  :ensure t
+  :defer 1
+  :config
+  (paradox-enable))
+
 
 (use-package diminish
   :ensure t)
@@ -65,6 +136,14 @@
   (show-paren-mode t)                                   ;; Highlight matching paranthesis
   (global-visual-line-mode t)                           ;; Show full path
   (setq-default frame-title-format "%b (%f)")           ;; in the title bar.
+  (setq initial-frame-alist '((width . 140)
+                              (height . 40)
+                              (tool-bar-lines . 0)
+                              (bottom-divider-width . 0)
+                              (right-divider-width . 1))
+        default-frame-alist initial-frame-alist
+        frame-inhibit-implied-resize t
+        x-gtk-resize-child-frames 'resize-mode)
 
   :custom
   (indent-tabs-mode nil "Spaces!")
@@ -74,6 +153,10 @@
   (cursor-in-non-selected-windows t)    ;; Hide the cursor in inactive windows
   ;; (echo-keystrokes 0.1)
   )
+
+
+(setq-default fringe-indicator-alist
+              (assq-delete-all 'truncation fringe-indicator-alist))
 
 
 (use-package ibuffer
@@ -90,6 +173,73 @@
   :config
   (winner-mode 1))
 
+
+;; (use-package display-line-numbers
+;;   :straight nil
+;;   :hook (prog-mode . display-line-numbers-mode)
+;;   :custom
+;;   (display-line-numbers-width 4)
+;;   (display-line-numbers-grow-only t)
+;;   (display-line-numbers-width-start t)
+;;   :config
+;;   (define-advice previous-line (:around (f &rest args) aorst:previous-line-margin)
+;;     "The `display-line-numbers' mode affects `scroll-margin' variable.
+
+;; This advice recalculates the amount of lines needed to scroll to
+;; ensure `scroll-margin' preserved."
+;;     (apply f args)
+;;     (let ((diff (- scroll-margin
+;;                    (- (line-number-at-pos (point))
+;;                       (line-number-at-pos (window-start))))))
+;;       (when (> diff 0)
+;;         (scroll-down diff)))))
+
+
+;; ============================================
+;;  >>>>>>>>>>>>> Spell checking <<<<<<<<<<<<<
+
+;; (use-package mule
+;;   :defer 0.1
+;;   :config
+;;   (prefer-coding-system 'utf-8)
+;;   (set-language-environment "UTF-8")
+;;   (set-terminal-coding-system 'utf-8))
+
+;; (use-package ispell
+;;   :defer t
+;;   :custom
+;;   (ispell-local-dictionary-alist
+;;    '(("russian"
+;;       "[АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюяіїєґ’A-Za-z]"
+;;       "[^АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюяіїєґ’A-Za-z]"
+;;       "[-']"  nil ("-d" "ru_RU,en_US") nil utf-8)))
+;;   (ispell-program-name "hunspell")
+;;   (ispell-dictionary "russian")
+;;   (ispell-really-aspell nil)
+;;   (ispell-really-hunspell t)
+;;   (ispell-encoding8-command t)
+;;   (ispell-silently-savep t))
+
+;; (use-package flyspell
+;;   :defer t
+;;   :custom
+;;   (flyspell-delay 1))
+
+;; (use-package flyspell-correct-ivy
+;;   :ensure t
+;;   :bind (:map flyspell-mode-map
+;;               ("C-c $" . flyspell-correct-at-point)))
+
+;; --------------
+;; Spell checking requires an external command to be available. Install =aspell= on your Mac, then make it the default checker for Emacs' =ispell=. Note that personal dictionary is located at =~/.aspell.LANG.pws= by default.
+(setq ispell-program-name "aspell")
+
+;; Enable spellcheck on the fly for all text modes. This includes org, latex and LaTeX. Spellcheck current word.
+(add-hook 'text-mode-hook 'flyspell-mode)
+(global-set-key (kbd "C-c f") 'ispell-word)
+(global-set-key (kbd "C-c j") 'flyspell-auto-correct-word)
+
+
 ;; AWESOME:  This makes long-line buffers usable!
 ;; (setq-default bidi-display-reordering nil)
 
@@ -105,7 +255,6 @@
 
 ;;;; Light themes
 ;; (load-theme 'tsdh-light)
-;; (use-package espresso-theme :ensure t :config (load-theme 'espresso t))
 
 ;; (use-package eink-theme
 ;;   :ensure t
@@ -130,7 +279,53 @@
   :config (load-theme 'cloud t)
   :custom-face
   (font-lock-keyword-face ((t (:weight normal :foreground "#8A2607"))))
-  (mode-line ((t (:height 0.98)))))
+  (mode-line ((t (:height 0.98 :background "#92B5D1")))))  ;; "#3681C2" "#79B9FF" "#B4CCD1" "#AEDAEB"
+
+
+;; (defcustom light-theme 'doom-one-light
+;;   "Light theme to use."
+;;   :tag "Light theme"
+;;   :type 'symbol
+;;   :group 'local-config)
+
+;; (use-package doom-themes
+;;   :straight (:host github
+;;                    :repo "hlissner/emacs-doom-themes")
+;;   :custom
+;;   (doom-themes-enable-bold t)
+;;   (doom-themes-enable-italic t)
+;;   :custom-face
+;;   (fringe    ((t (:background nil))))
+;;   (highlight ((t (:foreground unspecified
+;;                               :distant-foreground unspecified
+;;                               :background unspecified))))
+;;   (org-block ((t (:extend t :background unspecified :inherit hl-line))))
+;;   (org-block-begin-line ((t (:slant unspecified
+;;                                     :weight normal
+;;                                     :background unspecified
+;;                                     :inherit org-block
+;;                                     :extend t))))
+;;   (org-block-end-line   ((t (:background unspecified
+;;                                          :inherit org-block-begin-line
+;;                                          :extend t))))
+;;   (secondary-selection  ((t (:foreground unspecified
+;;                                          :background unspecified
+;;                                          :inherit region
+;;                                          :extend t))))
+;;   (org-level-2 ((t (:inherit outline-3))))
+;;   (org-level-3 ((t (:inherit outline-4))))
+;;   (org-level-4 ((t (:inherit outline-2))))
+;;   (org-level-5 ((t (:inherit outline-1))))
+;;   (org-level-6 ((t (:inherit outline-3))))
+;;   (org-level-7 ((t (:inherit outline-4))))
+;;   (org-level-8 ((t (:inherit outline-2))))
+;;   (org-drawer ((t (:foreground nil :inherit shadow))))
+;;   (font-lock-comment-face ((t (:background unspecified))))
+;;   :config
+;;   ;; (load-theme dark-theme t)
+;;   (load-theme light-theme t)
+;;   )
+
 
 ;;;; Dark themes
 ;; (use-package nord-theme :ensure t)
@@ -143,6 +338,21 @@
 ;; :config
 ;; ;; (load-theme 'poet t)
 ;; (load-theme 'poet-monochrome t)
+
+(use-package solaire-mode
+  ;; :straight (:host github
+  ;;                 :repo "hlissner/emacs-solaire-mode")
+  :ensure t
+  :commands (solaire-global-mode)
+  :init
+  (solaire-global-mode 1))
+
+;; (straight-use-package '(nano-theme :type git :host github :repo "404cn/nano-theme.el"))
+
+
+(use-package uniquify
+  :straight nil
+  :custom (uniquify-buffer-name-style 'forward))
 
 
 (use-package visual-fill-column
@@ -185,6 +395,34 @@
 
 (use-package hydra
   :ensure t)
+
+
+(use-package all-the-icons
+  :ensure t
+  :defer t
+  :config
+  (setq all-the-icons-mode-icon-alist
+        `(,@all-the-icons-mode-icon-alist
+          (package-menu-mode all-the-icons-octicon "package" :v-adjust 0.0)
+          (jabber-chat-mode all-the-icons-material "chat" :v-adjust 0.0)
+          (jabber-roster-mode all-the-icons-material "contacts" :v-adjust 0.0)
+          (telega-chat-mode all-the-icons-fileicon "telegram" :v-adjust 0.0
+                            :face all-the-icons-blue-alt)
+          (telega-root-mode all-the-icons-material "contacts" :v-adjust 0.0))))
+
+(use-package all-the-icons-dired
+  :ensure t
+  :hook
+  (dired-mode . all-the-icons-dired-mode))
+
+(use-package all-the-icons-ivy
+  :defer t
+  :ensure t
+  :after ivy
+  :custom
+  (all-the-icons-ivy-buffer-commands '() "Don't use for buffers.")
+  :config
+  (all-the-icons-ivy-setup))
 
 
 ;; Dashboard
@@ -240,6 +478,17 @@
            :desc "Emacs Help"))))
 
 
+;; ==========================================
+;;  >>>>>>>>>> non-English layout <<<<<<<<<<
+
+(use-package reverse-im
+  :ensure t
+  :custom
+  (reverse-im-input-methods '("russian-computer"))
+  :config
+  (reverse-im-mode t))
+
+
 ;; ===========================================
 ;;  >>>>>>>>>>>>>>>>> Dired <<<<<<<<<<<<<<<<<
 
@@ -255,14 +504,19 @@
 ;; ===========================================
 ;;  >>>>>>>>>>>>>>>>>> ORG <<<<<<<<<<<<<<<<<<
 
+(use-package calendar
+  :defer t
+  :custom
+  (calendar-week-start-day 1))
+
 (use-package org-roam
   :ensure t
   :hook
   (after-init . org-roam-mode)
   :custom
-  (org-roam-directory "~/Dropbox/Emacs/org-roam/")
-  (org-roam-db-location "~/Dropbox/Emacs/org-roam/db/org-roam.db")
-  (org-directory "~/Dropbox/Emacs/org/")
+  (org-roam-directory "c:/Users/Elena/Dropbox/Emacs/org-roam/")
+  (org-roam-db-location "c:/Users/Elena/Dropbox/Emacs/org-roam/db/org-roam.db")
+  (org-directory "c:/Users/Elena/Dropbox/Emacs/org/")
   ;; (org-hide-emphasis-markers t)
   :bind (:map org-roam-mode-map
               (("C-c n l" . org-roam)
@@ -273,13 +527,10 @@
               (("C-c n i" . org-roam-insert))
               (("C-c n I" . org-roam-insert-immediate))))
 
-(use-package htmlize
-  :ensure t)
-
 (use-package org-bullets
   :ensure t
   :custom
-  (org-bullets-bullet-list '("◉" "•" "•" "•" "•" "•" "•"))
+  (org-bullets-bullet-list '("✸" "◉" "•" "•" "•" "•" "•"))
   ;; org-bullets-bullet-list
   ;; default: "◉ ○ ✸ ✿"
   ;; large: ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
@@ -287,16 +538,58 @@
   ;; (org-bullets-bullet-list '("•"))
   ;; others: ▼, ↴, ⬎, ⤵, ⤷,…, ⇳, ⇊, 🠗
   ;; (org-ellipsis "⤵")
-  (org-ellipsis "⤵")
+  (org-ellipsis " ...")
   :hook
   (org-mode . org-bullets-mode))
+
+(use-package htmlize
+  :ensure t
+  :defer t
+  :custom
+  (org-html-htmlize-output-type 'css)
+  (org-html-htmlize-font-prefix "org-"))
+
+
+;; ============================================
+;;  >>>>>>>>>>>>>>>> Writingt <<<<<<<<<<<<<<<<
 
 (use-package olivetti
   :ensure t
   :custom
-  (olivetti-body-width 95)
+  (olivetti-body-width 120)
   :hook
   (text-mode-hook . olivetti-mode))
+
+;; Thesaurus
+(use-package synosaurus
+  :defer t
+  :ensure t
+  :custom
+  (synosaurus-choose-method 'default)
+  :config
+  (synosaurus-mode))
+
+;; Style
+(use-package writegood-mode
+  :defer t
+  :ensure t)
+
+(use-package flycheck-grammarly
+  :quelpa
+  (flycheck-grammarly :repo "jcs-elpa/flycheck-grammarly"  :fetcher github))
+
+
+;; ============================================
+;;  >>>>>>>>>>>>>>>>> Markup <<<<<<<<<<<<<<<<<
+
+(use-package markdown-mode
+  :ensure t
+  :ensure-system-package markdown
+  :mode (("\\`README\\.md\\'" . gfm-mode)
+         ("\\.md\\'"          . markdown-mode)
+         ("\\.markdown\\'"    . markdown-mode))
+  :custom
+  (markdown-command "markdown"))
 
 
 ;; ===========================================
@@ -360,12 +653,14 @@
 
 (use-package lsp-pyright
   :ensure t
+  :disabled t
   ;; :config
   ;; (setq lsp-pyright-auto-import-completions nil
   ;;       lsp-pyright-diagnostic-mode 'openFilesOnly)
   :hook (python-mode . (lambda ()
                          (require 'lsp-pyright)
                          (lsp))))  ; or lsp-deferred
+
 
 
 ;; ==========================================
@@ -471,6 +766,13 @@
    company-active-map
    ("C-h" . company-quickhelp-manual-begin)))
 
+(use-package company-shell
+  :ensure t
+  :after company
+  :defer t
+  :custom-update
+  (company-backends '(company-shell)))
+
 (use-package company-web
   :ensure t
   :after web-mode
@@ -538,19 +840,39 @@
 ;;  >>>>>>>>>>>>>>>> Editing <<<<<<<<<<<<<<<<
 
 ;; Regular undo-redo.
-(use-package undo-fu
-  :ensure t
-  :bind
-  ("C-z" . undo-fu-only-undo)
-  ("C-S-z" . undo-fu-only-redo)
-  ("C-/" . undo-fu-only-undo)
-  ("C-M-/" . undo-fu-only-redo))
+;; (use-package undo-fu
+;;   :ensure t
+;;   :bind
+;;   ("C-z" . undo-fu-only-undo)
+;;   ("C-S-z" . undo-fu-only-redo)
+;;   ("C-/" . undo-fu-only-undo)
+;;   ("C-M-/" . undo-fu-only-redo))
+
+(use-package undo-tree
+  :straight (:host gitlab
+                   :repo "tsc25/undo-tree")
+  :commands global-undo-tree-mode
+  :bind (("C-z" . undo-tree-undo)
+         ("C-S-z" . undo-tree-redo)
+         ("C-/" . undo-fu-only-undo)
+         ("C-M-/" . undo-fu-only-redo))
+  :custom
+  (undo-tree-visualizer-relative-timestamps nil)
+  (undo-tree-visualizer-timestamps nil)
+  (undo-tree-auto-save-history nil)
+  :init (global-undo-tree-mode 1))
 
 
 ;; ;; Smart parentheses
 (use-package smartparens
   :ensure t
   :config (smartparens-global-mode 1))
+
+(use-package paren
+  :straight nil
+  :custom
+  (show-paren-when-point-in-periphery t)
+  (show-paren-delay 0))
 
 ;; Smart commenting
 (use-package comment-dwim-2
@@ -573,10 +895,22 @@
   :init
   (with-eval-after-load 'winum
     (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
-  :config
-  (progn (setq treemacs-width 25))
+  :when window-system
+  :commands (treemacs-follow-mode
+             treemacs-filewatch-mode
+             treemacs-load-theme)
+  ;; :config
+  ;; (progn (setq treemacs-width 25))
   :bind
-  ("C-c t r" . treemacs))
+  ("C-c t r" . treemacs)
+  :custom-face
+  (treemacs-fringe-indicator-face ((t (:inherit font-lock-doc-face))))
+  (treemacs-git-ignored-face ((t (:inherit (shadow)))))
+  :custom
+  (treemacs-width 25)
+  (treemacs-is-never-other-window t)
+  (treemacs-space-between-root-nodes nil)
+  (treemacs-indentation 2))
 
 (use-package treemacs-icons-dired
   :after treemacs dired
@@ -591,16 +925,10 @@
 (use-package avy
   :ensure t
   :bind
-  ("C-;" . 'avy-goto-char)
-  ("C-'" . 'avy-goto-char-2))
-
-
-;; ===========================================
-;;  >>>>>>>>>>>>>>>> Writing <<<<<<<<<<<<<<<<
-
-(use-package writegood-mode
-  :defer t
-  :ensure t)
+  (("C-c C-;" . 'avy-goto-char)
+   ("C-'" . 'avy-goto-char-2)
+   :map goto-map
+   ("M-g" . avy-goto-line)))
 
 
 ;; ==========================================
@@ -637,15 +965,150 @@
 ;;   ;;         highlight-indent-guides-auto-top-character-face-perc 20))
 ;;   )
 
-;; (use-package rainbow-identifiers
-;;   :ensure t
-;;   :custom
-;;   (rainbow-identifiers-cie-l*a*b*-lightness 30)
-;;   (rainbow-identifiers-cie-l*a*b*-saturation 50)
-;;   (rainbow-identifiers-choose-face-function
-;;    #'rainbow-identifiers-cie-l*a*b*-choose-face)
-;;   :hook
-;;   (emacs-lisp-mode . rainbow-identifiers-mode) ; actually, turn it off
-;;   (prog-mode . rainbow-identifiers-mode))
 
-;; ------------------------------------------------------------------
+;; ==========================================
+;;  >>>>>>>>>>>>> tab-line <<<<<<<<<<<<<
+
+(use-package tab-line
+  :straight nil
+  :when window-system
+  :hook ((after-init . global-tab-line-mode)
+         ;; (aorst--theme-change . aorst/tabline-setup-faces)
+         )
+  :config
+  (defun tab-line-close-tab (&optional e)
+    "Close the selected tab.
+
+If tab is presented in another window, close the tab by using
+`bury-buffer` function.  If tab is unique to all existing
+windows, kill the buffer with `kill-buffer` function.  Lastly, if
+no tabs left in the window, it is deleted with `delete-window`
+function."
+    (interactive "e")
+    (let* ((posnp (event-start e))
+           (window (posn-window posnp))
+           (buffer (get-pos-property 1 'tab (car (posn-string posnp)))))
+      (with-selected-window window
+        (let ((tab-list (tab-line-tabs-window-buffers))
+              (buffer-list (flatten-list
+                            (seq-reduce (lambda (list window)
+                                          (select-window window t)
+                                          (cons (tab-line-tabs-window-buffers) list))
+                                        (window-list) nil))))
+          (select-window window)
+          (if (> (seq-count (lambda (b) (eq b buffer)) buffer-list) 1)
+              (progn
+                (if (eq buffer (current-buffer))
+                    (bury-buffer)
+                  (set-window-prev-buffers window (assq-delete-all buffer (window-prev-buffers)))
+                  (set-window-next-buffers window (delq buffer (window-next-buffers))))
+                (unless (cdr tab-list)
+                  (ignore-errors (delete-window window))))
+            (and (kill-buffer buffer)
+                 (unless (cdr tab-list)
+                   (ignore-errors (delete-window window)))))))))
+
+
+  (defun tab-line-name-buffer (buffer &rest _buffers)
+    "Create name for tab with padding and truncation.
+
+If buffer name is shorter than `tab-line-tab-max-width' it gets
+centered with spaces, otherwise it is truncated, to preserve
+equal width for all tabs.  This function also tries to fit as
+many tabs in window as possible, so if there are no room for tabs
+with maximum width, it calculates new width for each tab and
+truncates text if needed.  Minimal width can be set with
+`tab-line-tab-min-width' variable."
+    (with-current-buffer buffer
+      (let ((buffer (string-trim (buffer-name)))
+            (right-pad (if tab-line-close-button-show "" " ")))
+        (propertize (concat " " buffer right-pad)
+                    'help-echo (when-let ((name (buffer-file-name)))
+                                 (abbreviate-file-name name))))))
+
+
+  (setq tab-line-close-button-show t
+        tab-line-new-button-show nil
+        tab-line-separator ""
+        tab-line-tab-name-function #'tab-line-name-buffer
+        tab-line-right-button (propertize (if (char-displayable-p ?▶) " ▶ " " > ")
+                                          'keymap tab-line-right-map
+                                          'mouse-face 'tab-line-highlight
+                                          'help-echo "Click to scroll right")
+        tab-line-left-button (propertize (if (char-displayable-p ?◀) " ◀ " " < ")
+                                         'keymap tab-line-left-map
+                                         'mouse-face 'tab-line-highlight
+                                         'help-echo "Click to scroll left")
+        tab-line-close-button (propertize (if (char-displayable-p ?×) " × " " x ")
+                                          'keymap tab-line-tab-close-map
+                                          'mouse-face 'tab-line-close-highlight
+                                          'help-echo "Click to close tab")
+        tab-line-exclude-modes '(ediff-mode
+                                 process-menu-mode
+                                 term-mode
+                                 vterm-mode
+                                 treemacs-mode
+                                 imenu-list-major-mode))
+
+
+  (defun tabline-setup-faces ()
+    (let ((bg (face-attribute 'default :background))
+          (fg (face-attribute 'default :foreground))
+          (dark-fg (face-attribute 'shadow :foreground))
+          (overline (face-attribute 'font-lock-keyword-face :foreground))
+          (base (if (and (facep 'solaire-default-face)
+                         (not (eq (face-attribute 'solaire-default-face :background)
+                                  'unspecified)))
+                    (face-attribute 'solaire-default-face :background)
+                  (face-attribute 'mode-line :background)))
+          (box-width 5))
+      (when (facep 'tab-line-tab-special)
+        (set-face-attribute 'tab-line-tab-special nil
+                            :slant 'normal))
+      (set-face-attribute 'tab-line nil
+                          :background "#B4CCD1"
+                          :foreground dark-fg
+                          :height 1.0
+                          :inherit nil
+                          :overline base
+                          :box (when (> box-width 0)
+                                 (list :line-width -1 :color "#B4CCD1")))
+      (set-face-attribute 'tab-line-tab nil
+                          :foreground dark-fg
+                          :background bg
+                          :inherit nil
+                          :box (when (> box-width 0)
+                                 (list :line-width box-width :color bg)))
+      (set-face-attribute 'tab-line-tab-inactive nil
+                          :foreground dark-fg
+                          :background "#B4CCD1"
+                          :inherit nil
+                          :box (when (> box-width 0)
+                                 (list :line-width box-width :color "#B4CCD1")))
+      (set-face-attribute 'tab-line-tab-current nil
+                          :foreground fg
+                          :background bg
+                          :inherit nil
+                          :overline overline
+                          :box (when (> box-width 0)
+                                 (list :line-width box-width :color bg)))))
+
+  (tabline-setup-faces)
+
+  (define-advice tab-line-select-tab (:after (&optional e) tab-line-select-tab)
+    (select-window (posn-window (event-start e)))))
+
+
+;; (use-package centaur-tabs
+;;   :ensure t
+;;   :demand
+;;   :config
+;;   (centaur-tabs-mode t)
+;;   (setq centaur-tabs-style "bar"
+;;         centaur-tabs-height 25
+;;         centaur-tabs-set-icons t
+;;         centaur-tabs-set-bar 'over
+;;         centaur-tabs-set-modified-marker t)
+;;   :bind
+;;   ("C-<prior>" . centaur-tabs-backward)
+;;   ("C-<next>" . centaur-tabs-forward))
